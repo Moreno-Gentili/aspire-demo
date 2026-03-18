@@ -5,9 +5,13 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Diagnostics;
 using System.Web;
 using System.Web.Optimization;
 using System.Web.Routing;
+
+[assembly: System.Web.PreApplicationStartMethod(typeof(ProgettoAspNet.Global),
+    nameof(ProgettoAspNet.Global.CheckDebugger))]
 
 namespace ProgettoAspNet
 {
@@ -16,6 +20,16 @@ namespace ProgettoAspNet
         public static TracerProvider Tracer { get; private set; }
         public static MeterProvider Meter { get; private set; }
         public static ILoggerFactory Logger { get; private set; }
+
+        public static void CheckDebugger()
+        {
+            // This env variable is passed from Aspire as we don't have a clean way to attach the debugger to IIS Express
+            // Use this if you don't enable the vsjitdebugger.exe hook
+            if (System.Environment.GetEnvironmentVariable("Launch_Debugger_On_Start") == "true")
+            {
+                Debugger.Launch();
+            }
+        }
 
         protected void Application_Start()
         {
