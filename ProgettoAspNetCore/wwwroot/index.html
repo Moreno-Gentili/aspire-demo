@@ -1,0 +1,46 @@
+﻿<html>
+<head>
+    <title>ProgettoAspNetCore</title>
+    <script src="https://unpkg.com/@microsoft/signalr@5.0.6/dist/browser/signalr.min.js"></script>
+    <style>
+        * {
+            font-family: sans-serif
+        }
+    </style>
+</head>
+<body>
+    <h1>Progetto AspNetCore</h1>
+
+    <h2>Messages</h2>
+    <ul id="messages">
+    </ul>
+
+    <script>
+        const connection = new signalR.HubConnectionBuilder().withUrl("/messages").build();
+
+        connection.on("ReceiveMessage", function (text, timestamp) {
+            const li = document.createElement("li");
+            document.getElementById("messages").appendChild(li);
+            li.textContent = `[${timestamp}] ${text}`;
+        });
+
+        async function start() {
+            try {
+                await connection.start();
+                console.log("SignalR Connected.");
+            } catch (err) {
+                console.log(err);
+                setTimeout(start, 5000);
+            }
+        };
+
+        connection.onclose(async () => {
+            await start();
+        });
+
+        // Start the connection.
+        start();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.1.2">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>8135e8b1-9710-495c-9186-f2127cdfec9c</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="topology-definition.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Configuration\rabbitmq.conf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Configuration\definitions.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.1.2" />
+    <PackageReference Include="C3D.Extensions.Aspire.IISExpress" Version="0.3.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.4.0" />
+	<PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.4.0" />
+	<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0" />
+	<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
+	<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.1" />
+	<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
+	<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ProgettoAspNetCore\ProgettoAspNetCore.csproj" />
+    <ProjectReference Include="..\..\ProgettoAspNet\ProgettoAspNet.csproj" />
+  </ItemGroup>
+
+</Project>
