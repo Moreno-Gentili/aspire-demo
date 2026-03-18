@@ -1,5 +1,3 @@
-using Aspire.AppHost;
-
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(new DistributedApplicationOptions
 {
     Args = args,
