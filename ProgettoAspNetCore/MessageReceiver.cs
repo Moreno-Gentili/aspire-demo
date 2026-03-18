@@ -1,12 +1,16 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using ProgettoAspNetCore.Telemetry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace ProgettoAspNetCore;
 
 public class MessageReceiver(
     IConfiguration configuration,
+    ILogger<MessageReceiver> logger,
+    IMessageCounter messageCounter,
     IHubContext<MessageHub> messages) : IHostedService
 {
     private RabbitReceiver? receiver;
@@ -35,9 +39,28 @@ public class MessageReceiver(
             return;
         }
 
-        Message message = DeserializeMessage(args.Body);
-        await messages.Clients.All.SendAsync("ReceiveMessage", message.Text, message.Timestamp, args.CancellationToken);
-        await receiver.Channel.BasicAckAsync(args.DeliveryTag, false, args.CancellationToken);
+        // Trace
+        using Activity? activity = TraceActivitySource.Value.StartActivity("RECEIVE", ActivityKind.Consumer);
+
+        try
+        {
+            Message message = DeserializeMessage(args.Body);
+            activity?.SetTag("ReceivedMessage", message.Text);
+
+            // Log
+            logger.LogInformation("Received message {text}", message.Text);
+
+            // Metric
+            messageCounter.Increment();
+
+            await messages.Clients.All.SendAsync("ReceiveMessage", message.Text, message.Timestamp, args.CancellationToken);
+            await receiver.Channel.BasicAckAsync(args.DeliveryTag, false, args.CancellationToken);
+        }
+        catch (Exception exc)
+        {
+            activity?.AddException(exc);
+            activity?.SetStatus(ActivityStatusCode.Error);
+        }
     }
 
     private Message DeserializeMessage(ReadOnlyMemory<byte> body)

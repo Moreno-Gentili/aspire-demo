@@ -3,71 +3,84 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using System.Diagnostics;
 using System.Web;
 using System.Web.Optimization;
 using System.Web.Routing;
-
-[assembly: System.Web.PreApplicationStartMethod(typeof(ProgettoAspNet.Global),
-    nameof(ProgettoAspNet.Global.CheckDebugger))]
+using WebApplication1.Telemetry;
 
 namespace ProgettoAspNet
 {
     public class Global : HttpApplication
     {
-        public static TracerProvider Tracer { get; private set; }
-        public static MeterProvider Meter { get; private set; }
-        public static ILoggerFactory Logger { get; private set; }
-
-        public static void CheckDebugger()
-        {
-            // This env variable is passed from Aspire as we don't have a clean way to attach the debugger to IIS Express
-            // Use this if you don't enable the vsjitdebugger.exe hook
-            if (System.Environment.GetEnvironmentVariable("Launch_Debugger_On_Start") == "true")
-            {
-                Debugger.Launch();
-            }
-        }
+        private const string ApplicationName = "ProgettoAspNet";
+        private ServiceProvider serviceProvider;
+        private MeterProvider meterProvider;
+        private LoggerProvider loggerProvider;
+        private TracerProvider tracerProvider;
+        public static ILogger Logger { get; private set; }
 
         protected void Application_Start()
         {
-            ResourceBuilder resourceBuilder = ResourceBuilder.CreateDefault().AddService("ProgettoAspNet");
+            var services = new ServiceCollection();
 
-            Tracer = Sdk.CreateTracerProviderBuilder()
-                .AddAspNetInstrumentation()
-                .AddHttpClientInstrumentation() // Traces outbound calls
-                .AddOtlpExporter(opt => opt.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf)
-                .Build();
-
-            Meter = Sdk.CreateMeterProviderBuilder()
-            .SetResourceBuilder(resourceBuilder)
-            .AddAspNetInstrumentation() // Captures HTTP request metrics
-            .AddRuntimeInstrumentation() // Captures CPU, Memory, GC
-            .AddOtlpExporter(opt => opt.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf)
-            .Build();
-
-            Logger = LoggerFactory.Create(builder =>
+            services.AddLogging(logging =>
             {
-                builder.AddOpenTelemetry(options =>
+                logging.Configure(options =>
                 {
-                    options.SetResourceBuilder(resourceBuilder);
-                    options.AddOtlpExporter(opt => opt.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf);
-                    options.IncludeFormattedMessage = true;
+                    options.ActivityTrackingOptions =
+                        ActivityTrackingOptions.SpanId |
+                        ActivityTrackingOptions.TraceId |
+                        ActivityTrackingOptions.ParentId;
+                });
+
+                logging.AddOpenTelemetry(ot =>
+                {
+                    ot.IncludeFormattedMessage = true;
+                    ot.IncludeScopes = true;
+                    ot.ParseStateValues = true;
                 });
             });
 
-            // TelemetryConfig.RegisterTelemetry(serviceProvider);
+            services.AddOpenTelemetry()
+                .WithTracing(tracing =>
+                {
+                    tracing
+                        .AddAspNetInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddRabbitMQInstrumentation()
+                        .AddSource(TraceActivitySource.Name);
+                })
+                .WithMetrics(metrics =>
+                {
+                    metrics
+                        .AddAspNetInstrumentation()
+                        .AddAspNetInstrumentation()
+                        .AddRuntimeInstrumentation()
+                        .AddMeter(MessageCounter.Name);
+                })
+                .WithLogging(logging =>
+                {
+                })
+            .UseOtlpExporter();
+
+            serviceProvider = services.BuildServiceProvider();
+
+            meterProvider = serviceProvider.GetService<MeterProvider>();
+            tracerProvider = serviceProvider.GetService<TracerProvider>();
+            loggerProvider = serviceProvider.GetService<LoggerProvider>();
+            Logger = serviceProvider.GetService<ILogger<Global>>();
+
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
         }
 
         protected void Application_End()
         {
-            Tracer.Dispose();
-            Meter.Dispose();
-            Logger.Dispose();
+            meterProvider?.Dispose();
+            loggerProvider?.Dispose();
+            tracerProvider?.Dispose();
+            serviceProvider?.Dispose();
         }
     }
 }

@@ -3,10 +3,12 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System;
 using System.Configuration;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.UI;
+using WebApplication1.Telemetry;
 
 namespace ProgettoAspNet
 {
@@ -20,6 +22,26 @@ namespace ProgettoAspNet
 
         private async Task SendMessageAsync(CancellationToken cancellationToken)
         {
+            // Trace
+            using (Activity activity = TraceActivitySource.Value.StartActivity("PUBLISH", ActivityKind.Producer))
+            {
+                string username = User.Identity.IsAuthenticated ? User.Identity.Name : "Anonymous";
+                activity.AddTag("Username", username);
+                activity.AddTag("Message", Message.Text);
+
+                // Log
+                Global.Logger.LogInformation("Publish message {text}", Message.Text);
+
+                // Metric
+                MessageCounter.Increment();
+
+                await SendMessageToBrokerAsync(Message.Text, activity.Id, cancellationToken);
+                Message.Text = "";
+            }
+        }
+
+        private async Task SendMessageToBrokerAsync(string message, string traceId, CancellationToken cancellationToken)
+        {
             ConnectionFactory factory = new ConnectionFactory();
             factory.Uri = new Uri(ConfigurationManager.AppSettings["BrokerEndpoint"]);
 
@@ -27,14 +49,11 @@ namespace ProgettoAspNet
             {
                 using (IChannel channel = await conn.CreateChannelAsync(cancellationToken: cancellationToken))
                 {
-
                     byte[] messageBody = SerializeMessage(Message.Text);
                     await channel.BasicPublishAsync(
                         exchange: "test",
                         routingKey: string.Empty,
                         body: messageBody, cancellationToken);
-
-                    Message.Text = "";
                 }
             }
         }
