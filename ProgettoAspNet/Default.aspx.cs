@@ -14,7 +14,6 @@ namespace ProgettoAspNet
 {
     public partial class _Default : Page
     {
-
         protected void Send_Click(object sender, EventArgs e)
         {
             RegisterAsyncTask(new PageAsyncTask(SendMessageAsync));

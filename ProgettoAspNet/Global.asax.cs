@@ -1,9 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using System;
+using System.Configuration;
 using System.Web;
 using System.Web.Optimization;
 using System.Web.Routing;
@@ -62,7 +65,7 @@ namespace ProgettoAspNet
                 .WithLogging(logging =>
                 {
                 })
-            .UseOtlpExporter();
+            .UseOtlpExporter(OtlpExportProtocol.HttpProtobuf, new Uri(ConfigurationManager.AppSettings["OTEL_EXPORTER_OTLP_ENDPOINT"]));
 
             serviceProvider = services.BuildServiceProvider();
 

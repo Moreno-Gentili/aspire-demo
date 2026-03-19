@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProgettoAspNet", "..\Proget
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProgettoAspNetCore", "..\ProgettoAspNetCore\ProgettoAspNetCore.csproj", "{48D36634-737B-6444-ED1B-4FAD373FBDFC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aspire.AppHost.Test", "Aspire.AppHost.Test\Aspire.AppHost.Test.csproj", "{01A7223B-81A1-C850-3F47-75402F70E9CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{48D36634-737B-6444-ED1B-4FAD373FBDFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48D36634-737B-6444-ED1B-4FAD373FBDFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48D36634-737B-6444-ED1B-4FAD373FBDFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01A7223B-81A1-C850-3F47-75402F70E9CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01A7223B-81A1-C850-3F47-75402F70E9CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01A7223B-81A1-C850-3F47-75402F70E9CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01A7223B-81A1-C850-3F47-75402F70E9CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

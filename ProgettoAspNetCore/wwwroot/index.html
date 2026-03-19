@@ -21,7 +21,7 @@
         connection.on("ReceiveMessage", function (text, timestamp) {
             const li = document.createElement("li");
             document.getElementById("messages").appendChild(li);
-            li.textContent = `[${timestamp}] ${text}`;
+            li.innerHTML = `[${timestamp}] <span data-testid="message-text">${text}</span>`;
         });
 
         async function start() {
