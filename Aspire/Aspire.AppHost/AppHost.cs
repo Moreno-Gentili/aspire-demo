@@ -5,7 +5,8 @@ IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(ne
 });
 
 // Adds a containerized dependency
-var broker = builder
+IResourceBuilder<RabbitMQServerResource> broker =
+    builder
     .AddRabbitMQ(
         name: "Broker",
         userName: builder.AddParameter("BrokerUsername", "guest"),

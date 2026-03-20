@@ -16,7 +16,7 @@ public class LoginTests : EndToEndTest
         IPage page2 = await Context.NewPageAsync();
         await page2.GotoAsync(BaseAspNetCoreUrl);
 
-        const string message = "Mellon";
+        const string message = "They're taking the hobbits to Isengard!";
 
         // Act
         ILocator messageTextField = page1.GetByTestId("message-text");
